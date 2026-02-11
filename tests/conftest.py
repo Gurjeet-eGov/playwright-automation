@@ -1,15 +1,5 @@
-# shared fixtures
-import pytest
-from playwright.sync_api import sync_playwright
-
-@pytest.fixture(scope="session")
-def browser(playwright):
-    browser = playwright.chromium.launch(headless=False)
-    yield browser
-    browser.close()
-
-@pytest.fixture
-def context(browser):
-    context = browser.new_context()
-    yield context
-    context.close()
+# Import all fixtures from fixtures folder so they're available to tests
+pytest_plugins = [
+    "fixtures.browser_fixtures",
+    "fixtures.tl_ui_fixture",
+]

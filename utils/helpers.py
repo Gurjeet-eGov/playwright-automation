@@ -1,5 +1,20 @@
 import pandas as pd
 import csv, json
+import re
+
+def validate_regex_patterns(string_list):
+    """
+    Filter strings that contain underscore (_) or dot (.)
+    Drops strings that don't contain either character.
+    
+    Args:
+        string_list: List of strings to validate
+        
+    Returns:
+        List of strings containing _ or .
+    """
+    pattern = r'[_.]'
+    return [item for item in string_list if re.search(pattern, item)]
 
 def list_cleanup(data_list):
     # This keeps the item only if it is NOT an empty string or a dash

@@ -22420,5 +22420,12 @@
       "message": "Testing",
       "module": "rainmaker-dss",
       "locale": "en_IN"
+    },
+    {
+      "code": "pg.testing",
+      "message": "Total Cumulative Collection (Lac)",
+      "module": "rainmaker-dss",
+      "locale": "en_IN"
     }
+    
   ]
