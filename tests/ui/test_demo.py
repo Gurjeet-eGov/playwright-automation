@@ -3,13 +3,13 @@ import time, re
 from playwright.sync_api import Page
 from utils import helpers
 
-def test_language_selection(page: Page):
+def test_language_selection(page_chr):
 
     # Language selection
-    page.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
+    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
 
     # Get all available languages
-    language_dd = page.locator(".language-button-container button")
+    language_dd = page_chr.locator(".language-button-container button")
     language_dd.first.wait_for()
     languages = []
     for i in range(language_dd.count()):
@@ -21,28 +21,26 @@ def test_language_selection(page: Page):
     selected_locale = languages[0]
     print("\nSelected languages:", selected_locale)
     language_dd.get_by_text(selected_locale).click()
-    page.get_by_role("button").get_by_text("Continue").click()
+    page_chr.get_by_role("button").get_by_text("Continue").click()
 
     assert True
 
-def test_employee_login(page: Page):
-    page.goto("https://unified-demo.digit.org/digit-ui/employee/user/login")
-    page.wait_for_load_state("networkidle")
+def test_employee_login(page_chr):
+    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/login")
+    page_chr.wait_for_load_state("networkidle")
     # Employee Login
-    page.locator("input[name='username']").fill("TL_SU")
-    page.locator("input[name='password']").fill("eGov@1234")
-
+    page_chr.locator("input[name='username']").fill("TL_SU")
+    page_chr.locator("input[name='password']").fill("eGov@1234")
     # City selection
-    dropdown_wrapper = page.locator(".employee-select-wrap.login-city-dd")
+    dropdown_wrapper = page_chr.locator(".employee-select-wrap.login-city-dd")
     dropdown_wrapper.click()
-    options_box = page.locator("#jk-dropdown-unique")
+    options_box = page_chr.locator("#jk-dropdown-unique")
     options_box.wait_for(state="visible", timeout=5000)
     options_box.locator(".profile-dropdown--item").nth(1).click()
 
-    page.locator("button[type='submit']").click()
-
+    page_chr.locator("button[type='submit']").click()
     # Wait for navigation to employee landing page
-    page.wait_for_url("**/digit-ui/employee")
+    page_chr.wait_for_url("**/digit-ui/employee")
 
     assert True
 
@@ -90,14 +88,14 @@ def test_landing_page(tl_context):
     time.sleep(3)
     assert True
 
-def test_demo(page: Page):
+def test_demo(page_chr):
 
     # Language selection
     # page = context.new_page()
-    page.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
+    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
 
     # Get all available languages
-    language_dd = page.locator(".language-button-container button")
+    language_dd = page_chr.locator(".language-button-container button")
     language_dd.first.wait_for()
     languages = []
     for i in range(language_dd.count()):
@@ -109,30 +107,30 @@ def test_demo(page: Page):
     locale = languages[0]
     print("\nSelected languages:", locale)
     language_dd.get_by_text(locale).click()
-    page.get_by_role("button").get_by_text("Continue").click()
+    page_chr.get_by_role("button").get_by_text("Continue").click()
 
 
     # Employee Login
-    page.locator("input[name='username']").fill("TL_SU")
-    page.locator("input[name='password']").fill("eGov@1234")
+    page_chr.locator("input[name='username']").fill("TL_SU")
+    page_chr.locator("input[name='password']").fill("eGov@1234")
 
     # City selection
-    dropdown_wrapper = page.locator(".employee-select-wrap.login-city-dd")
+    dropdown_wrapper = page_chr.locator(".employee-select-wrap.login-city-dd")
     dropdown_wrapper.click()
-    options_box = page.locator("#jk-dropdown-unique")
+    options_box = page_chr.locator("#jk-dropdown-unique")
     options_box.wait_for(state="visible", timeout=5000)
     options_box.locator(".profile-dropdown--item").nth(1).click()
 
-    page.locator("button[type='submit']").click()
+    page_chr.locator("button[type='submit']").click()
 
     # Wait for navigation to employee landing page
-    page.wait_for_url("**/digit-ui/employee")
+    page_chr.wait_for_url("**/digit-ui/employee")
 
     # Extract page text
-    body = page.locator("[id='root']")
+    body = page_chr.locator("[id='root']")
     text = body.inner_text().split('\n')
     # Sidebar interaction
-    sidebar = page.locator(".sidebar")
+    sidebar = page_chr.locator(".sidebar")
     sidebar.hover()
     # Sidebar click to expand (TL module)
     sidebar.locator("[data-for='jk-side-TRADE_LICENSE']").click()
@@ -142,8 +140,8 @@ def test_demo(page: Page):
     print("\nSidebar text:", sidebar_text, type(sidebar_text))
 
     body.locator(".employee-app-container").hover()
-    page.get_by_role("link", name="Dashboard").click()
-    dss_body = page.locator("#divToPrint")
+    page_chr.get_by_role("link", name="Dashboard").click()
+    dss_body = page_chr.locator("#divToPrint")
     dss_body.wait_for(state="visible", timeout=15000)
     dss_text = dss_body.inner_text()
     dss_text = re.split(r'[\n\t]+', dss_text)
