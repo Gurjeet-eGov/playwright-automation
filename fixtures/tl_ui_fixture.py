@@ -1,16 +1,21 @@
 import pytest
+from utils import helpers
+
+BASE_URL = helpers.get_env("host")
+USERNAME = helpers.get_creds("TL_EMP").get("username")
+PASSWORD = helpers.get_creds("TL_EMP").get("password")
 
 @pytest.fixture(scope="session")
 def tl_context(browser_chr):
     ctx = browser_chr.new_context()
     page = ctx.new_page()
-    page.goto("https://unified-demo.digit.org/digit-ui/employee/user/login")
+    page.goto(BASE_URL + "/digit-ui/employee/user/login")
     page.wait_for_load_state("domcontentloaded")
     page.locator("input[name='username']").wait_for(state="visible")
 
     # Employee Login
-    page.locator("input[name='username']").fill("TL_SU")
-    page.locator("input[name='password']").fill("eGov@1234")
+    page.locator("input[name='username']").fill(USERNAME)
+    page.locator("input[name='password']").fill(PASSWORD)
 
     # City selection
     dropdown_wrapper = page.locator(".employee-select-wrap.login-city-dd")

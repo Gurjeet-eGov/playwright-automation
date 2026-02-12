@@ -1,10 +1,15 @@
 import pytest
+from utils import helpers
+
+BASE_URL = helpers.get_env("host")
+USERNAME = helpers.get_creds("TL_EMP").get("username")
+PASSWORD = helpers.get_creds("TL_EMP").get("password")
 
 @pytest.mark.ui
 def test_language_selection(page_chr):
 
     # Language selection
-    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
+    page_chr.goto(BASE_URL + "/digit-ui/employee/user/language-selection")
 
     # Get all available languages
     language_dd = page_chr.locator(".language-button-container button")
@@ -25,11 +30,11 @@ def test_language_selection(page_chr):
 
 @pytest.mark.ui
 def test_employee_login(page_chr):
-    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/login")
+    page_chr.goto(BASE_URL + "/digit-ui/employee/user/login")
     page_chr.wait_for_load_state("networkidle")
     # Employee Login
-    page_chr.locator("input[name='username']").fill("TL_SU")
-    page_chr.locator("input[name='password']").fill("eGov@1234")
+    page_chr.locator("input[name='username']").fill(USERNAME)
+    page_chr.locator("input[name='password']").fill(PASSWORD)
     # City selection
     dropdown_wrapper = page_chr.locator(".employee-select-wrap.login-city-dd")
     dropdown_wrapper.click()

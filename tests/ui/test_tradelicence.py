@@ -2,13 +2,16 @@ import time, re
 import pytest
 from utils import helpers
 
+BASE_URL = helpers.get_env("host")
+USERNAME = helpers.get_creds("TL_EMP").get("username")
+PASSWORD = helpers.get_creds("TL_EMP").get("password")
+MODULE = "TL"
+
 @pytest.mark.ui
-def test_landing_page(tl_context):
+def test_tl_landing_page(tl_context):
 
     page = tl_context.new_page()
-    page.goto("https://unified-demo.digit.org/digit-ui/employee")
-
-    # Wait for navigation to employee landing page
+    page.goto(BASE_URL + "/digit-ui/employee")
     page.wait_for_load_state("networkidle")
 
     # Extract page text
@@ -21,27 +24,27 @@ def test_landing_page(tl_context):
     sidebar.locator("[data-for='jk-side-TRADE_LICENSE']").click()
     sidebar_text = sidebar.inner_text().split('\n')
 
+    locales = text + sidebar_text
+
     print("\nLogged in page text:", text, type(text))
     print("\nSidebar text:", sidebar_text, type(sidebar_text))
-    body.locator(".employee-app-container").hover()
-    loc_list = helpers.list_cleanup(text + sidebar_text)
-    print("\nFinal:", loc_list)
+    # loc_list = helpers.list_cleanup(text + sidebar_text)
+    # print("\nFinal:", loc_list)
 
     # Find localization leaks
-    leaks = helpers.find_loc_codes(loc_list)
-    print("\nLocalization leaks:", leaks)
-    helpers.write_csv(leaks, 'tl_locales.csv')
-    helpers.write_json(leaks, 'tl_locales.json')
+    loc_codes = helpers.find_loc_codes(locales)
+    print("\nLocalization leaks:", loc_codes)
+    helpers.write_json(loc_codes, MODULE + '_locales.json')
 
-    time.sleep(3)
     assert True
+    page.close()
 
 @pytest.mark.ui
 def test_demo(page_chr):
 
     # Language selection
     # page = context.new_page()
-    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
+    page_chr.goto(BASE_URL + "/digit-ui/employee/user/language-selection")
 
     # Get all available languages
     language_dd = page_chr.locator(".language-button-container button")
@@ -60,8 +63,8 @@ def test_demo(page_chr):
 
 
     # Employee Login
-    page_chr.locator("input[name='username']").fill("TL_SU")
-    page_chr.locator("input[name='password']").fill("eGov@1234")
+    page_chr.locator("input[name='username']").fill(USERNAME)
+    page_chr.locator("input[name='password']").fill(PASSWORD)
 
     # City selection
     dropdown_wrapper = page_chr.locator(".employee-select-wrap.login-city-dd")
@@ -85,9 +88,6 @@ def test_demo(page_chr):
     sidebar.locator("[data-for='jk-side-TRADE_LICENSE']").click()
     sidebar_text = sidebar.inner_text().split('\n')
 
-    print("\nLogged in page text:", text, type(text))
-    print("\nSidebar text:", sidebar_text, type(sidebar_text))
-
     body.locator(".employee-app-container").hover()
     page_chr.get_by_role("link", name="Dashboard").click()
     dss_body = page_chr.locator("#divToPrint")
@@ -95,18 +95,10 @@ def test_demo(page_chr):
     dss_text = dss_body.inner_text()
     dss_text = re.split(r'[\n\t]+', dss_text)
     dss_text = [item.strip() for item in dss_text if item.strip()]
-    print("\nDSS text:", dss_text, type(dss_text))
 
-
-    loc_list = helpers.list_cleanup(text + sidebar_text + dss_text)
-    print("\nFinal:", loc_list)
-
+    locales = text + sidebar_text + dss_text
     # Find localization leaks
-    leaks = helpers.find_loc_codes(loc_list)
-    print("\nLocalization leaks:", leaks)
-    helpers.write_csv(leaks, 'tl_locales.csv')
-    helpers.write_json(leaks, 'tl_locales.json')
-
-    time.sleep(3)
+    loc_codes = helpers.find_loc_codes(locales)
+    print("\nLocalization leaks:", loc_codes)
     assert True
-
+    page_chr.close()

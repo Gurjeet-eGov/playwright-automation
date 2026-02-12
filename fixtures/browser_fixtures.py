@@ -13,4 +13,5 @@ def page_chr(browser_chr):
     context = browser_chr.new_context()
     page = context.new_page()
     yield page
+    page.close()
     context.close()

@@ -1,0 +1,17 @@
+{
+  "host": "https://demo.xyz.org",
+  "localhost": "http://localhost:8082/",
+  "stateCode": "State",
+  "cityCode": "City",
+  "auth_header": {
+    "authorization": "Basic ABC"
+  },
+  "credentials": {
+    "TL_EMP": {
+      "username": "ABC",
+      "password": "XYZ",
+      "tenantId": "Test City",
+      "type": "Employee"
+    }
+  }
+}
