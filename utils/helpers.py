@@ -2,6 +2,8 @@ import pandas as pd
 import csv, json
 import re
 
+LOCALIZATION_SOURCE_PATH = 'output/resources/source.json'
+
 def validate_regex_patterns(string_list):
     """
     Filter strings that contain underscore (_) or dot (.)
@@ -21,9 +23,8 @@ def list_cleanup(data_list):
     sp_chars = ['', '-', ' ']
     return [item for item in data_list if item not in sp_chars]
 
-def find_loc_codes(ui_strings, source_json_path):
+def find_loc_codes(ui_strings, source_json_path=LOCALIZATION_SOURCE_PATH):
     # 1. Load the Source JSON
-    source_json_path = 'output/resources/source.json'
     with open(source_json_path, 'r', encoding='utf-8') as f:
         source_data = json.load(f)
 
@@ -40,7 +41,7 @@ def find_loc_codes(ui_strings, source_json_path):
             leaks.append(string)
         # Else: it exists in 'message', so we skip it (localized)
 
-    return leaks
+    return validate_regex_patterns(leaks)
 
 def write_csv(data, filename):
     # Convert the list to a DataFrame

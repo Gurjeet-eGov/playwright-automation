@@ -24,7 +24,7 @@ def tl_context(browser_chr):
     # Wait for navigation to employee landing page
     page.wait_for_url("**/digit-ui/employee")
     page.wait_for_load_state("networkidle")
-    
+    page.close()
     yield ctx
     ctx.close()
     

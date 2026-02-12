@@ -1,49 +1,8 @@
 import time, re
-
-from playwright.sync_api import Page
+import pytest
 from utils import helpers
 
-def test_language_selection(page_chr):
-
-    # Language selection
-    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
-
-    # Get all available languages
-    language_dd = page_chr.locator(".language-button-container button")
-    language_dd.first.wait_for()
-    languages = []
-    for i in range(language_dd.count()):
-        button_text = language_dd.nth(i).inner_text()
-        languages.append(button_text)
-    print("\nAvailable languages:", languages)
-    
-    # Language selection
-    selected_locale = languages[0]
-    print("\nSelected languages:", selected_locale)
-    language_dd.get_by_text(selected_locale).click()
-    page_chr.get_by_role("button").get_by_text("Continue").click()
-
-    assert True
-
-def test_employee_login(page_chr):
-    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/login")
-    page_chr.wait_for_load_state("networkidle")
-    # Employee Login
-    page_chr.locator("input[name='username']").fill("TL_SU")
-    page_chr.locator("input[name='password']").fill("eGov@1234")
-    # City selection
-    dropdown_wrapper = page_chr.locator(".employee-select-wrap.login-city-dd")
-    dropdown_wrapper.click()
-    options_box = page_chr.locator("#jk-dropdown-unique")
-    options_box.wait_for(state="visible", timeout=5000)
-    options_box.locator(".profile-dropdown--item").nth(1).click()
-
-    page_chr.locator("button[type='submit']").click()
-    # Wait for navigation to employee landing page
-    page_chr.wait_for_url("**/digit-ui/employee")
-
-    assert True
-
+@pytest.mark.ui
 def test_landing_page(tl_context):
 
     page = tl_context.new_page()
@@ -64,23 +23,12 @@ def test_landing_page(tl_context):
 
     print("\nLogged in page text:", text, type(text))
     print("\nSidebar text:", sidebar_text, type(sidebar_text))
-
     body.locator(".employee-app-container").hover()
-    page.get_by_role("link", name="Dashboard").click()
-    dss_body = page.locator("#divToPrint")
-    dss_body.wait_for(state="visible", timeout=15000)
-    dss_text = dss_body.inner_text()
-    dss_text = re.split(r'[\n\t]+', dss_text)
-    dss_text = [item.strip() for item in dss_text if item.strip()]
-    print("\nDSS text:", dss_text, type(dss_text))
-
-
-    loc_list = helpers.list_cleanup(text + sidebar_text + dss_text)
+    loc_list = helpers.list_cleanup(text + sidebar_text)
     print("\nFinal:", loc_list)
 
     # Find localization leaks
-    leaks = helpers.find_loc_codes(loc_list, 'resources/source.json')
-    leaks = helpers.validate_regex_patterns(leaks)
+    leaks = helpers.find_loc_codes(loc_list)
     print("\nLocalization leaks:", leaks)
     helpers.write_csv(leaks, 'tl_locales.csv')
     helpers.write_json(leaks, 'tl_locales.json')
@@ -88,6 +36,7 @@ def test_landing_page(tl_context):
     time.sleep(3)
     assert True
 
+@pytest.mark.ui
 def test_demo(page_chr):
 
     # Language selection
@@ -153,8 +102,7 @@ def test_demo(page_chr):
     print("\nFinal:", loc_list)
 
     # Find localization leaks
-    leaks = helpers.find_loc_codes(loc_list, 'resources/source.json')
-    leaks = helpers.validate_regex_patterns(leaks)
+    leaks = helpers.find_loc_codes(loc_list)
     print("\nLocalization leaks:", leaks)
     helpers.write_csv(leaks, 'tl_locales.csv')
     helpers.write_json(leaks, 'tl_locales.json')

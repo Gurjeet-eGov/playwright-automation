@@ -1,11 +1,44 @@
 import pytest
-from pages.login_page import LoginPage
 
 @pytest.mark.ui
-def test_valid_login(page):
-    login_page = LoginPage(page)
+def test_language_selection(page_chr):
 
-    login_page.navigate("https://example.com/login")
-    login_page.login("admin", "password")
+    # Language selection
+    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/language-selection")
 
-    assert "Dashboard" in page.title()
+    # Get all available languages
+    language_dd = page_chr.locator(".language-button-container button")
+    language_dd.first.wait_for()
+    languages = []
+    for i in range(language_dd.count()):
+        button_text = language_dd.nth(i).inner_text()
+        languages.append(button_text)
+    print("\nAvailable languages:", languages)
+    
+    # Language selection
+    selected_locale = languages[0]
+    print("\nSelected languages:", selected_locale)
+    language_dd.get_by_text(selected_locale).click()
+    page_chr.get_by_role("button").get_by_text("Continue").click()
+
+    assert True
+
+@pytest.mark.ui
+def test_employee_login(page_chr):
+    page_chr.goto("https://unified-demo.digit.org/digit-ui/employee/user/login")
+    page_chr.wait_for_load_state("networkidle")
+    # Employee Login
+    page_chr.locator("input[name='username']").fill("TL_SU")
+    page_chr.locator("input[name='password']").fill("eGov@1234")
+    # City selection
+    dropdown_wrapper = page_chr.locator(".employee-select-wrap.login-city-dd")
+    dropdown_wrapper.click()
+    options_box = page_chr.locator("#jk-dropdown-unique")
+    options_box.wait_for(state="visible", timeout=5000)
+    options_box.locator(".profile-dropdown--item").nth(1).click()
+
+    page_chr.locator("button[type='submit']").click()
+    # Wait for navigation to employee landing page
+    page_chr.wait_for_url("**/digit-ui/employee")
+
+    assert True
