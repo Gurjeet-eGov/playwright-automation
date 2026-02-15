@@ -46,9 +46,9 @@ def test_pt_dashboard(page_chr):
     pt_card.click()
     page.wait_for_load_state("networkidle")
 
-    page.locator(".jss344").first.wait_for(state="visible", timeout=15000)
-
     dss_body = page.locator("#divToPrint")
+    table_row = dss_body.get_by_role("row").first
+    table_row.wait_for(state="visible", timeout=10000)
 
     locales = dss_body.inner_text()
     locales = re.split(r'[\n\t]+', locales)
@@ -57,6 +57,6 @@ def test_pt_dashboard(page_chr):
     # Find localization leaks
     loc_codes = helpers.find_loc_codes(locales)
     helpers.write_json(loc_codes, 'PT_locales.json')
-    time.sleep(3)
+    time.sleep(2)
     assert True
 
