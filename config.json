@@ -1,6 +1,6 @@
 {
-  "host": "https://demo.xyz.org",
-  "localhost": "http://localhost:8082/",
+  "host": "https://mseva.lgpunjab.gov.in",
+  "localhost": "http://localhost:8082",
   "stateCode": "State",
   "cityCode": "City",
   "auth_header": {
