@@ -57,6 +57,7 @@ def test_pt_dashboard(page_chr):
     # Find localization leaks
     loc_codes = helpers.find_loc_codes(locales)
     helpers.write_json(loc_codes, 'PT_locales.json')
+    # print('Found Locales: ', loc_codes)
     time.sleep(2)
     assert True
 
