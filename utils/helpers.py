@@ -31,8 +31,13 @@ def validate_regex(string_list):
         and not EXCLUDE_NUMERIC_ONLY.match(item)
     ]
 
-def find_loc_codes(ui_strings,
+def find_loc_codes(ui_strings, 
+                   isTable = False, 
                    source_json_path=LOCALIZATION_SOURCE_PATH):
+    
+    if isTable:
+        ui_strings = re.split(r'[\n\t]+', ui_strings)
+        ui_strings = [item.strip() for item in ui_strings if item.strip()]
     
     # 1. Load the Source JSON
     with open(source_json_path, 'r', encoding='utf-8') as f:
@@ -42,16 +47,16 @@ def find_loc_codes(ui_strings,
     # We use a set for lightning-fast lookups
     valid_messages = {item['message'] for item in source_data}
 
-    loc_codes = []
+    leaks = []
 
     # 3. Compare UI strings against the valid messages
     for string in ui_strings:
         # Check if the UI string is missing from the message whitelist
         if string not in valid_messages:
-            loc_codes.append(string)
+            leaks.append(string)
         # Else: it exists in 'message', so we skip it (localized)
 
-    return validate_regex(loc_codes)
+    return validate_regex(leaks)
 
 def write_csv(data, filename):
     # Convert the list to a DataFrame
