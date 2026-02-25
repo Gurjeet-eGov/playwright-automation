@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 import csv, json
 import re
@@ -70,10 +71,9 @@ def write_json(data, filename):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 def get_table_data(page: None):
-    # 1. Find all tables on the page
-    # Using the MUI specific class found in your inspect element
+
     tables = page.locator("table.MuiTable-root:visible")
-    tables.first.locator("tbody tr").first.wait_for(state="visible")
+    tables.first.locator("tbody tr").first.wait_for(state="visible", timeout=30000)
     table_count = tables.count()
     print(f"Found {table_count} tables.")
     table_data = ''
@@ -81,7 +81,8 @@ def get_table_data(page: None):
         current_table = tables.nth(i)
         first_row = current_table.locator("tbody tr").first
         drill_down_link = first_row.locator("td").nth(1).locator("span").first
-        drill_down_link.click(timeout=5000)
+        drill_down_link.click(timeout=30000)
+        time.sleep(2)
         table_headers = current_table.locator("thead tr").inner_text()
         table_data = table_data + table_headers + current_table.inner_text() if current_table.inner_text() else table_data
     return table_data

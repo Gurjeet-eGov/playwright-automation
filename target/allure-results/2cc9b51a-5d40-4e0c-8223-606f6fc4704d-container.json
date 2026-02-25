@@ -1,1 +1,0 @@
-{"uuid": "cf6efb1a-9564-437f-b46d-fc695af509ad", "children": ["cb761b1c-f02f-4645-b87e-6ca98b7bb9ae"], "befores": [{"name": "page_chr", "status": "passed", "start": 1771862558529, "stop": 1771862558716}], "afters": [{"name": "page_chr::0", "status": "passed", "start": 1771862564476, "stop": 1771862564506}], "start": 1771862558529, "stop": 1771862564506}
