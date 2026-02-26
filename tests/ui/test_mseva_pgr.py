@@ -2,6 +2,7 @@
 import re, time, pytest
 from utils import helpers
 from playwright.sync_api import expect
+from pages.Login import EmployeeLogin
 
 BASE_URL = helpers.get_env("host")
 LOGIN_URL = BASE_URL + "/employee/language-selection"
@@ -20,8 +21,15 @@ class TestMsevaPgr:
         page = ctx.new_page()
         page.goto(LOGIN_URL)
         page.wait_for_load_state("networkidle")
-        page.get_by_role("button").filter(has_text="English").click()
-        page.get_by_role("button").filter(has_text="Continue").click()
+
+        employeeLogin = EmployeeLogin()
+        employeeLogin.languageSelectionMonoUI(page, "English")
+        # employeeLogin.login_continue_btn.click()
+
+        # page.get_by_role("button").filter(has_text="English").click()
+        # page.get_by_role("button").filter(has_text="Continue").click()
+
+
         page.wait_for_load_state("networkidle")
         # Employee Login
         page.locator("#employee-phone").fill(self.USERNAME)
