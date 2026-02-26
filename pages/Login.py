@@ -2,38 +2,41 @@ from playwright.sync_api import Page
 
 class EmployeeLogin:
 
-    def languageSelectionMonoUI(self, page: Page, language: str):
+    def __init__(self, page: Page):
         self.page = page
-        self.language_btn = page.locator(".button-toggle-container").filter(has_text=language)
-        self.continue_btn = page.get_by_role("button").filter(has_text="Continue")
-        self.continue_btn.click()
-
-    def MonoUI(self, page: Page, tenantId: str):
-        self.page = page
-        self.language = page.get_by_role("button").filter(has_text="English")
-        self.continue_btn = page.get_by_role("button").filter(has_text="Continue")
+        
+        # --- Language Selection Locators ---
+        self.language_options = page.locator(".button-item")
+        self.lang_continue_btn = page.locator("#continue-action")
+        
+        # --- Login Page Locators ---
         self.username_input = page.locator("#employee-phone")
         self.password_input = page.locator("#employee-password")
-        self.city_input = page.get_by_role("textbox", name="City *")
-        self.city_picker_dialog = page.locator(".citipicker-dialog")
-        self.city_picker_search_input = self.city_picker_dialog.locator("input[type='search']")
-        self.city_options = self.city_picker_dialog.locator(".list-main-card")
-        self.city_selection = self.city_options.locator("#"+tenantId)
-        self.login_continue_btn = page.get_by_role("button").filter(has_text="Continue")
+        self.city_input = page.locator("#person-city")
+        
+        # --- City Picker Locators ---
+        self.city_select_dialog = page.locator(".citipicker-dialog")
+        self.city_select_input = page.locator("#city-picker-search")
+        self.city_list = self.city_select_dialog.locator(".list-main-card")
+        
+        # --- Main Action Button ---
+        self.login_submit_btn = page.locator("#login-submit-action")
 
-    def login(self, username: str, password: str, tenant: str):
-        self.page.get_by_role("button").filter(has_text="English").click()
-        self.page.get_by_role("button").filter(has_text="Continue").click()
-        self.page.wait_for_load_state("networkidle")
-        # Employee Login
-        self.page.locator("#employee-phone").fill(username)
-        self.page.locator("#employee-password").fill(password)
-        self.page.get_by_role("textbox", name="City *").click()
-        CityPicker = self.page.locator(".citipicker-dialog")
-        CityPicker.wait_for(state="visible", timeout=5000)
-        self.page.get_by_text(tenant).click()
-        self.page.get_by_role("button").filter(has_text="Continue").click()
+    # --- ACTION METHODS ---
+    
+    def select_language(self, language: str):
+        """Selects language and moves to the login screen."""
+        self.language_options.filter(has_text=language).click()
+        self.lang_continue_btn.click()
 
-        # Wait for navigation to employee landing page
-        self.page.wait_for_url("**/employee/inbox")
-        self.page.wait_for_load_state("networkidle")
+    def login_employee(self, username: str, password: str, tenant_id: str):
+        """Fills login details, selects city, and submits."""
+        self.username_input.fill(username)
+        self.password_input.fill(password)
+        
+        # City selection flow
+        self.city_input.click()
+        # self.city_select_input.fill("tenant_id")
+        self.city_list.locator(f'[id="{tenant_id}"]').click()
+        
+        self.login_submit_btn.click()

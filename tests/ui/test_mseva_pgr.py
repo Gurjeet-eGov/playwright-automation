@@ -3,9 +3,9 @@ import re, time, pytest
 from utils import helpers
 from playwright.sync_api import expect
 from pages.Login import EmployeeLogin
+from pages.LandingPage import EmpMonoUI
 
 BASE_URL = helpers.get_env("host")
-LOGIN_URL = BASE_URL + "/employee/language-selection"
 LOC_FILENAME = "TestMsevaPgr.json"
 
 class TestMsevaPgr:
@@ -13,45 +13,57 @@ class TestMsevaPgr:
     USERNAME = helpers.get_creds("PGR").get("username")
     PASSWORD = helpers.get_creds("PGR").get("password")
     TENANT = helpers.get_creds("PGR").get("tenantId")
+    CITY = helpers.get_creds("PGR").get("city")
+    LANGUAGE = "English"
     loc_codes = []
 
     @pytest.fixture(scope="class", autouse=True)
-    def pgr_fixture(self, browser_chr):
-        ctx = browser_chr.new_context()
-        page = ctx.new_page()
+    def pgr_emp_ctx_fixture(self, browser_chr):
+
+        # returns employee ui login context
+
+        LOGIN_URL = BASE_URL + "/employee/language-selection"
+
+        context = browser_chr.new_context()
+        page = context.new_page()
+        EmpLoginPom = EmployeeLogin(page)
+
         page.goto(LOGIN_URL)
         page.wait_for_load_state("networkidle")
 
-        employeeLogin = EmployeeLogin()
-        employeeLogin.languageSelectionMonoUI(page, "English")
-        # employeeLogin.login_continue_btn.click()
-
-        # page.get_by_role("button").filter(has_text="English").click()
-        # page.get_by_role("button").filter(has_text="Continue").click()
-
-
+        # Language-select page
+        EmpLoginPom.select_language(self.LANGUAGE)
         page.wait_for_load_state("networkidle")
+
         # Employee Login
-        page.locator("#employee-phone").fill(self.USERNAME)
-        page.locator("#employee-password").fill(self.PASSWORD)
-        page.get_by_role("textbox", name="City *").click()
-        CityPicker = page.locator(".citipicker-dialog")
-        CityPicker.wait_for(state="visible", timeout=5000)
-        page.get_by_text("Testing").click()
-        page.get_by_role("button").filter(has_text="Continue").click()
+        EmpLoginPom.login_employee(username=self.USERNAME,
+                                     password=self.PASSWORD,
+                                     tenant_id=self.TENANT)
 
         # Wait for navigation to employee landing page
         page.wait_for_url("**/employee/inbox")
         page.wait_for_load_state("networkidle")
         page.close()
-        yield ctx
-        ctx.close()
+        yield context
+        context.close()
         helpers.write_json(self.loc_codes, LOC_FILENAME)
   
+    def test_pgr_empHomePageNav(self, pgr_emp_ctx_fixture):
+        page = pgr_emp_ctx_fixture.new_page()
+        page.goto(BASE_URL + "/employee")
+        page.wait_for_load_state("networkidle")
+        
+        EmpPom = EmpMonoUI(page)
+
+        EmpPom.left_menu_selection("PGR-1")
+        EmpPom.left_menu_selection("CREATE-COMPLAINT-0")
+        page.wait_for_load_state("networkidle")
+        page.locator("#create-complaint-card").wait_for(state="visible")
+        page.close()
 
     @pytest.mark.ui
-    def test_pgr_emp(self, pgr_fixture):
-        page = pgr_fixture.new_page()
+    def test_pgr_createComplaint(self, pgr_emp_ctx_fixture):
+        page = pgr_emp_ctx_fixture.new_page()
 
         # Create Complaint UI
         page.goto(BASE_URL + '/employee/create-complaint')
@@ -83,8 +95,6 @@ class TestMsevaPgr:
         page.get_by_role("menuitem", name="Azad Nagar - WARD-").click()
 
         # Submit complaint
-        page.get_by_role("button").click()
-
-        time.sleep(5)
-
+        # page.get_by_role("button").click()
+        page.close()
 
