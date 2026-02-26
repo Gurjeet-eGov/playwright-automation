@@ -131,7 +131,6 @@ class TestMsevaDSS:
         dss_body.get_by_role("button").filter(has_text="DEPARTMENT").click()
         time.sleep(2)
         locales = dss_body.inner_text()
-        print(locales)
         locales = helpers.find_loc_codes(locales, isTable=True)
         self.loc_codes.extend(locales)
         assert True

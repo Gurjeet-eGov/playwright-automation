@@ -3,9 +3,9 @@ import pytest
 from utils import helpers
 
 BASE_URL = helpers.get_env("host")
-USERNAME = helpers.get_creds("TL_EMP").get("username")
-PASSWORD = helpers.get_creds("TL_EMP").get("password")
 MODULE = "TL"
+USERNAME = helpers.get_creds(MODULE).get("username")
+PASSWORD = helpers.get_creds(MODULE).get("password")
 
 @pytest.mark.ui
 def test_tl_landing_page(tl_context):

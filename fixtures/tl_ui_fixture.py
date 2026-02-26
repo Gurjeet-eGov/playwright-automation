@@ -2,8 +2,8 @@ import pytest
 from utils import helpers
 
 BASE_URL = helpers.get_env("host")
-USERNAME = helpers.get_creds("TL_EMP").get("username")
-PASSWORD = helpers.get_creds("TL_EMP").get("password")
+USERNAME = helpers.get_creds("PGR").get("username")
+PASSWORD = helpers.get_creds("PGR").get("password")
 
 @pytest.fixture(scope="session")
 def tl_context(browser_chr):
