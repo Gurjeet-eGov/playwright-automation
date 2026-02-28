@@ -6,7 +6,7 @@ class EmpCreatePGR:
         
         self.page = page
         
-        # --- Form Fields ---
+        # --- Create Complaint Form ---
         # Note: Using the container as a starting point as per your original script
         self.create_complaint_card = page.locator("#create-complaint-card")
         
@@ -22,8 +22,8 @@ class EmpCreatePGR:
         self.complaint_type_search_input = page.locator("#complainttype-search")
 
         # --- City & Locality ---
-        self.city_field_trigger = page.locator("#react-select-2-input")
-        self.locality_field_trigger = page.get_by_text("#react-select-3-input")
+        self.city_field_input = page.locator("#react-select-2-input")
+        self.locality_field_input = page.locator("#react-select-3-input")
         
         # --- Actions ---
         self.submit_btn = page.locator("#addComplaint-submit-complaint")
@@ -45,19 +45,19 @@ class EmpCreatePGR:
                               isSubType: bool):
         self.complaint_type_trigger.click()
         self.complaint_list_card.wait_for(state="visible")
-        self.complaint_type_search_input.fill(type_name)
+        # self.complaint_type_search_input.fill(type_name)
         self.complaint_list_card.locator(f"[data-localization='{type_name}']").click()
         if isSubType:
             self.complaint_list_card.locator(f"[data-localization='{subType}']").click()
 
     def select_city(self, city_code: str):
         # The script shows clicking 'Select' inside the city field first
-        self.city_field_trigger.click()
-        self.city_field_trigger.get_by_role("textbox").fill(city_code)
+        # self.city_field_input.click()
+        self.city_field_input.fill(city_code)
         self.page.get_by_role("menuitem", name=city_code).click()
 
     def select_locality(self, locality_name: str):
-        self.locality_field_trigger.click()
-        self.locality_field_trigger.get_by_role("textbox").fill(locality_name)
+        # self.locality_field_input.click()
+        self.locality_field_input.fill(locality_name)
         self.page.get_by_role("menuitem", name=locality_name).click()
 

@@ -1,7 +1,6 @@
 
-import re, time, pytest
+import time, pytest
 from utils import helpers
-from playwright.sync_api import expect
 from pages.Login import EmployeeLogin
 from pages.LandingPage import EmpMonoUI
 from pages.Pgr import EmpCreatePGR
@@ -60,18 +59,18 @@ class TestMsevaPgr:
         EmpPom.left_menu_selection("CREATE-COMPLAINT-0")
         page.wait_for_load_state("networkidle")
         page.locator("#create-complaint-card").wait_for(state="visible")
-        time.sleep(30)
+        time.sleep(3)
         page.close()
 
     @pytest.mark.pgr
     def test_pgr_createComplaint(self, pgr_emp_ctx_fixture):
         page = pgr_emp_ctx_fixture.new_page()
-        EmpPgrPom = EmpCreatePGR(page)
 
         # Create Complaint UI
         page.goto(BASE_URL + '/employee/create-complaint')
         page.wait_for_load_state("networkidle")
-        
+        EmpPgrPom = EmpCreatePGR(page)
+
         # Create Complaint form
         EmpPgrPom.fill_citizen_details(name="Test Name",
                                        mobile="9999999991",
@@ -83,26 +82,18 @@ class TestMsevaPgr:
         EmpPgrPom.select_complaint_type(type_name="Animals",
                                         subType="Dead Animals",
                                         isSubType=True)
-        
-        # page.locator("[id='complaint-type']").click()
-        # page.locator("[id='complainttype-search']").fill("Dead Animals")
-        # page.locator("[data-localization='Dead Animals']").click()
+
 
         # City selection dropdown 
-        EmpPgrPom.select_city(self.TENANT)
-        # city_field = page.locator("[id='city']")
-        # city_field.get_by_text("Select").click()
-        # city_field.get_by_role("textbox").fill("pb.testing")
-        # page.get_by_role("menuitem", name="pb.testing").click()
+        EmpPgrPom.select_city(city_code=self.TENANT)
 
         # Locality selection dropdown 
-        EmpPgrPom.select_locality(locality_name="Azad Nagar - WARD-")
-        # page.get_by_text("Choose Locality/Mohalla").click()
-        # page.get_by_role("menuitem", name="Azad Nagar - WARD-").click()
+        EmpPgrPom.select_locality(locality_name="Azad Nagar - WARD-1")
 
         # Submit complaint
         EmpPgrPom.submit_btn.click()
-        # page.locator("#addComplaint-submit-complaint").click()
-        time.sleep(5)
+        
+        page.wait_for_load_state("networkidle")
+        print(page.locator('[class="label-container complaint-number-value"]').inner_text())
         page.close()
 
