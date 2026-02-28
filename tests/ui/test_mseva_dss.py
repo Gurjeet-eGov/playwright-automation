@@ -121,7 +121,6 @@ class TestMsevaDSS:
 
     @pytest.mark.ui
     @pytest.mark.localization
-    @pytest.mark.smoke
     def test_noc_dashboard_rev_tb(self, page_chr):
         page = page_chr
         page.goto(BASE_URL + '/dashboard/noc')

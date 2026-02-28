@@ -12,9 +12,9 @@ def get_env(conf_key=None):
         env_config = json.load(f)
     return env_config.get(conf_key) if conf_key else env_config
 
-def get_creds(user):
+def get_creds(module, user):
     """Returns credentials of a specific user"""
-    creds = get_env("credentials")
+    creds = get_env("credentials").get(module)
     return creds.get(user)
 
 def validate_regex(string_list):

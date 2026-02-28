@@ -18,9 +18,15 @@ class EmpMonoUI:
 
         # left menu options 
         self.left_menu = page.locator("#menu-container")
+        self.left_menu_home_btn = self.left_menu.locator('#HOME-0')
+
+        # quick action 
+        self.quick_action_btn = page.locator(".quick-action-button").get_by_role("button")
+        self.quick_action_dd = page.locator("#menu-list-grow")
         
-    def left_menu_selection(self, option_id: str):
-        self.left_menu.locator(f'[id="{option_id}"]').click()
+    def left_menu_selection(self, option: str):
+        # Select an option with option name from left menu
+        self.left_menu.locator(f'[data-localization="{option}"]').click()
 
     def logout(self):
         self.profile_icon.click()
@@ -31,3 +37,7 @@ class EmpMonoUI:
         self.logout_yes_btn.click()
         self.page.wait_for_load_state("networkidle")
 
+    def quick_action_selection(self, option_name):
+        self.quick_action_btn.click()
+        self.quick_action_dd.get_by_role("menuitem").filter(has_text=option_name).click()
+        
