@@ -1,17 +1,19 @@
 {
-  "host": "https://demo.xyz.org",
-  "localhost": "http://localhost:8082/",
+  "host": "https://mseva.url.gov.in",
+  "localhost": "http://localhost:8082",
   "stateCode": "State",
   "cityCode": "City",
   "auth_header": {
     "authorization": "Basic ABC"
   },
   "credentials": {
-    "TL_EMP": {
-      "username": "ABC",
-      "password": "XYZ",
-      "tenantId": "Test City",
-      "type": "Employee"
+    "PGR": {
+      "CSR": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee"},
+      "GRO": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee"},
+      "LME": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee"}
+    },
+    "TL": {
+      "SU": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee/Citizen"}
     }
   }
 }
