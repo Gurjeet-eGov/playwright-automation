@@ -64,8 +64,8 @@ class TestMsevaPgr:
         page.wait_for_load_state("networkidle")
 
         emp_pom = EmpMonoUI(page)
-        emp_pom.left_menu_selection("Grievances")
-        emp_pom.left_menu_selection("Create Complaint")
+        emp_pom.left_menu_selection("PGR-1")
+        emp_pom.left_menu_selection("CREATE-COMPLAINT-0")
 
         page.wait_for_load_state("networkidle")
         page.locator("#create-complaint-card").wait_for(state="visible")
@@ -75,9 +75,8 @@ class TestMsevaPgr:
     def test_pgr_createComplaint(self, pgr_csr_ctx):
         page = pgr_csr_ctx.new_page()
 
-        page.goto(BASE_URL + "/employee/create-complaint")
-        page.wait_for_load_state("networkidle")
         emp_pgr_pom = EmpCreatePGR(page)
+        emp_pgr_pom.navigate(base_url=BASE_URL)
 
         emp_pgr_pom.fill_citizen_details(
             name="Test Name",
@@ -110,17 +109,15 @@ class TestMsevaPgr:
         page.wait_for_load_state("networkidle")
 
         emp_pom = EmpMonoUI(page)
-        emp_pom.quick_action_selection("Search Complaint")
+        emp_pom.quick_action_option("Search Complaint")
         
         page.wait_for_load_state("networkidle")
         page.locator("#complaint-search-card").wait_for(state="visible")
-        time.sleep(3)
 
         emp_pom.left_menu_home_btn.click()
+        emp_pom.left_menu_selection("PGR-1")
+        emp_pom.left_menu_selection("OPEN-COMPLAINTS-0")
         page.wait_for_load_state("networkidle")
 
-        emp_pom.left_menu_selection("Grievances")
-        emp_pom.left_menu_selection("Open Complaints")
-        page.wait_for_load_state("networkidle")
-        time.sleep(3)
         page.close()
+
