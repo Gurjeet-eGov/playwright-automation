@@ -24,12 +24,12 @@ class EmpMonoUI:
         self.quick_action_btn = page.locator(".quick-action-button").get_by_role("button")
         self.quick_action_dd = page.locator("#menu-list-grow").get_by_role("menuitem")
         
-    def left_menu_selection(self, option: str):
+    def left_menu_selection(self, option_id: str):
         # Menu re-renders while expanding sections; re-locate and retry click.
         self.left_menu.wait_for(state="visible", timeout=15000)
         last_err = None
         for _ in range(4):
-            target = self.left_menu.locator(f"#{option}").first
+            target = self.left_menu.locator(f"#{option_id}").first
             try:
                 target.wait_for(state="visible", timeout=8000)
                 target.scroll_into_view_if_needed(timeout=5000)

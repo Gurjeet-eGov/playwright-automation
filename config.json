@@ -1,6 +1,5 @@
 {
   "host": "https://mseva.url.gov.in",
-  "localhost": "http://localhost:8082",
   "stateCode": "State",
   "cityCode": "City",
   "auth_header": {
@@ -8,7 +7,7 @@
   },
   "credentials": {
     "PGR": {
-      "CSR": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee"},
+      "CSR": {"username": "ABC", "password": "R9nTXYZ9tT9", "tenantId": "state.city", "type": "Employee"},
       "GRO": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee"},
       "LME": {"username": "ABC", "password": "XYZ", "tenantId": "state.city", "type": "Employee"}
     },

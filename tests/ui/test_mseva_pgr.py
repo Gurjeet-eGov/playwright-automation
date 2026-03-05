@@ -1,79 +1,117 @@
 
 import re, time, pytest
 from utils import helpers
-from pages.Login import EmployeeLogin
 from pages.LandingPage import EmpMonoUI
-from pages.Pgr import EmpCreatePGR
+from pages.Pgr import *
 
 BASE_URL = helpers.get_env("host")
 LOC_FILENAME = "TestMsevaPgr.json"
+loc_codes = []
 
 
 class TestMsevaPgr:
 
-    PGR_CSR_CREDS = helpers.get_creds(module="PGR", user="CSR")
-    PGR_GRO_CREDS = helpers.get_creds(module="PGR", user="GRO")
-    TL_CREDS = helpers.get_creds(module="TL", user="SU")
-    LANGUAGE = "English"
-    loc_codes = []
+    creds = helpers.get_creds(module="PGR")
+    language = "English"
     complaint_no = None
+    lme_assignee_name = "TESEMP0"
 
-    def _logged_in_context(self, browser_chr, creds: dict):
-        login_url = BASE_URL + "/employee/language-selection"
-        context = browser_chr.new_context(permissions=['geolocation'], 
-                                          geolocation={'latitude': 31.6340, 'longitude': 74.8723}, # Amritsar coordinates
-                                          )
-        page = context.new_page()
-        login_pom = EmployeeLogin(page)
-
-        page.goto(login_url)
-        page.wait_for_load_state("networkidle")
-        login_pom.select_language(self.LANGUAGE)
-        page.wait_for_load_state("networkidle")
-        login_pom.login_employee(
-            username=creds.get("username"),
-            password=creds.get("password"),
-            tenant_id=creds.get("tenantId"),
-        )
-        page.wait_for_url("**/employee/inbox")
-        page.wait_for_load_state("networkidle")
-        page.close()
-        return context
-
+    # --- Fixtures ---
     @pytest.fixture(scope="class", autouse=True)
     def _write_loc_codes(self):
         yield
-        helpers.write_json(self.loc_codes, LOC_FILENAME)
+        helpers.write_json(loc_codes, LOC_FILENAME)
 
     @pytest.fixture(scope="class")
-    def pgr_csr_ctx(self, browser_chr):
-        context = self._logged_in_context(browser_chr, self.PGR_CSR_CREDS)
-        yield context
-        context.close()
+    def pgr_contexts(self, browser_chr):
+        login_url = BASE_URL+"/employee/language-selection"
+
+        csr_ctx = helpers.get_logged_in_context(
+            browser_chr=browser_chr,
+            login_url=login_url,
+            creds=self.creds.get("CSR"),
+            language=self.language,
+        )
+        gro_ctx = helpers.get_logged_in_context(
+            browser_chr=browser_chr,
+            login_url=login_url,
+            creds=self.creds.get("GRO"),
+            language=self.language,
+        )
+        lme_ctx = helpers.get_logged_in_context(
+            browser_chr=browser_chr,
+            login_url=login_url,
+            creds=self.creds.get("LME"),
+            language=self.language,
+        )
+        contexts = {"CSR": csr_ctx,
+                   "GRO": gro_ctx,
+                   "LME": lme_ctx}
+        yield contexts
+        csr_ctx.close()
+        gro_ctx.close()
+        lme_ctx.close()
 
     @pytest.fixture(scope="class")
-    def pgr_gro_ctx(self, browser_chr):
-        context = self._logged_in_context(browser_chr, self.PGR_GRO_CREDS)
-        yield context
-        context.close()
+    def csr_create_fix(self, pgr_contexts):
+        context = pgr_contexts.get("CSR")
+        page = context.new_page()
 
-    @pytest.mark.pgr
-    def test_pgr_empHomePageNav(self, pgr_csr_ctx):
-        page = pgr_csr_ctx.new_page()
+        emp_create_pgr_pom = EmpCreatePGR(page)
+        emp_create_pgr_pom.navigate(base_url=BASE_URL)
+
+        emp_create_pgr_pom.fill_citizen_details(
+            name="Test Name",
+            mobile="9999999991",
+            house="HN 123 ST 123",
+            landmark="Tst Lndmrk",
+            add_details="Add Info",
+        )
+
+        emp_create_pgr_pom.select_complaint_type(
+            type_name="Animals",
+            subType="Dead Animals",
+            isSubType=True,
+        )
+
+        CSR_CRED = self.creds.get("CSR")
+        emp_create_pgr_pom.select_city(city_code=CSR_CRED.get("tenantId"))
+        emp_create_pgr_pom.select_locality(locality_name="Azad Nagar - WARD-1")
+        emp_create_pgr_pom.submit_btn.click()
+
+        page.wait_for_load_state("networkidle")
+        complaint_no = emp_create_pgr_pom.get_complaint_no()
+        page.close()
+
+        assert complaint_no, "Complaint number was not captured."
+        return complaint_no
+    
+    @pytest.fixture(scope="class")
+    def gro_assign_fix(self, pgr_contexts, csr_create_fix):
+        complaint_no = csr_create_fix
+        context = pgr_contexts.get("GRO")
+        page = context.new_page()
         page.goto(BASE_URL + "/employee")
         page.wait_for_load_state("networkidle")
 
+        # --- POM Objects ---
         emp_pom = EmpMonoUI(page)
-        emp_pom.left_menu_selection("PGR-1")
-        emp_pom.left_menu_selection("CREATE-COMPLAINT-0")
+        emp_pgr_pom = EmpSearchComplaints(page)
+        emp_pgr_summary_pom = EmpComplaintSummary(page)
 
+        emp_pom.quick_action_option("Search Complaint")
         page.wait_for_load_state("networkidle")
-        page.locator("#create-complaint-card").wait_for(state="visible")
+        emp_pgr_pom.search_complaint(complaint_no)
+        emp_pgr_summary_pom.assign_complaint(self.lme_assignee_name)
         page.close()
+        return complaint_no
 
+
+    # --- Test Cases ---
     @pytest.mark.pgr
-    def test_pgr_createComplaint(self, pgr_csr_ctx):
-        page = pgr_csr_ctx.new_page()
+    def test_pgr_createComplaint(self, pgr_contexts):
+        context = pgr_contexts.get("CSR")
+        page = context.new_page()
 
         emp_pgr_pom = EmpCreatePGR(page)
         emp_pgr_pom.navigate(base_url=BASE_URL)
@@ -97,14 +135,14 @@ class TestMsevaPgr:
         emp_pgr_pom.submit_btn.click()
 
         page.wait_for_load_state("networkidle")
-        self.complaint_no = page.locator('[class="label-container complaint-number-value"]').inner_text().strip()
+        self.complaint_no = emp_pgr_pom.get_complaint_no()
         assert self.complaint_no, "Complaint number was not captured."
         page.close()
 
     @pytest.mark.pgr
-    @pytest.mark.smoke
-    def test_pgr_empComplaintSearchPageNav(self, pgr_gro_ctx):
-        page = pgr_gro_ctx.new_page()
+    def test_pgr_groUiNav(self, pgr_contexts):
+        context = pgr_contexts.get("GRO")
+        page = context.new_page()
         page.goto(BASE_URL + "/employee")
         page.wait_for_load_state("networkidle")
 
@@ -121,3 +159,50 @@ class TestMsevaPgr:
 
         page.close()
 
+    @pytest.mark.pgr
+    def test_pgr_empComplaintAssign(self, pgr_contexts, csr_create_fix):
+        complaint_no = csr_create_fix
+        context = pgr_contexts.get("GRO")
+        page = context.new_page()
+
+        page.goto(BASE_URL + "/employee")
+        page.wait_for_load_state("networkidle")
+
+        # --- POM Objects ---
+        emp_pom = EmpMonoUI(page)
+        emp_pgr_pom = EmpSearchComplaints(page)
+        emp_pgr_summary_pom = EmpComplaintSummary(page)
+        # --- POM Objects ---
+
+        emp_pom.quick_action_option("Search Complaint")
+        page.wait_for_load_state("networkidle")
+
+        emp_pgr_pom.search_complaint(complaint_no)
+        emp_pgr_summary_pom.assign_complaint("TESEMP0")
+        time.sleep(3)
+
+        page.close()
+
+    @pytest.mark.pgr
+    @pytest.mark.smoke
+    def test_pgr_resolve(self, pgr_contexts, gro_assign_fix):
+        complaint_no = gro_assign_fix
+        context = pgr_contexts.get("LME")
+        lme_page = context.new_page()
+        lme_page.goto(BASE_URL + "/employee")
+        lme_page.wait_for_load_state("networkidle")
+        
+        # navigate to open complaints 
+        landing_page_pom = EmpMonoUI(lme_page)
+        landing_page_pom.left_menu_selection("PGR-1")
+        landing_page_pom.left_menu_selection("OPEN-COMPLAINTS-0")
+
+        # navigate to complaint summary
+        open_complaints_pom = EmpOpenComplaints(lme_page)
+        open_complaints_pom.search_open_lme_complaint(complaint_no)
+
+        # resolve complaint
+        complaint_summary_pom = EmpComplaintSummary(lme_page)
+        complaint_summary_pom.lme_resolve_complaint()
+        complaint_summary_pom.assigned_ack_card.wait_for(state="visible")
+        lme_page.close()

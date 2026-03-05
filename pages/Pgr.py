@@ -1,3 +1,5 @@
+import time
+
 from playwright.sync_api import Page
 
 class EmpCreatePGR:
@@ -61,3 +63,95 @@ class EmpCreatePGR:
         self.locality_field_input.fill(locality_name)
         self.page.get_by_role("menuitem", name=locality_name).click()
 
+    def get_complaint_no(self):
+        return self.page.locator('[class="label-container complaint-number-value"]').inner_text().strip()
+
+class EmpOpenComplaints:
+
+    def __init__(self, page: Page):
+        
+        self.page = page
+
+        self.unassigned_filter_btn = page.get_by_role("button").filter(has_text="UNASSIGNED")
+        self.assigned_filter_btn = page.get_by_role("button").filter(has_text="ASSIGNED")
+        self.complaint_card = page.locator(".complaint-card-wrapper")
+
+        # --- LME Open Complaints UI ---
+        self.lme_complaint_search_card = page.locator("#complaint-search-card")
+        self.lme_complaint_id_input = page.locator("#complaint-no")
+        self.lme_mobile_search_input = page.locator("#mobile-no")
+        self.lme_search_btn = page.locator('button').filter(
+            has=page.locator('[data-localization="SEARCH"]'))
+        self.lme_clear_search_btn = page.locator('button').filter(
+            has=page.locator('[data-localization="CLEAR SEARCH"]'))
+
+    def open_complaint(self, complaint_id):
+        """
+        For GRO user, open complaints card directly looks for complaint_id and clicks on card.
+        """
+        self.complaint_card.locator(f'[data-localization="{complaint_id}]').click()
+
+    def search_open_lme_complaint(self, complaint_no):
+        self.lme_complaint_id_input.fill(complaint_no[-6:])
+        self.lme_search_btn.click()
+        self.page.locator(f'[data-localization="{complaint_no}"]').click()
+
+class EmpSearchComplaints:
+
+    def __init__(self, page: Page):
+        
+        self.page = page
+
+        self.search_complaint_card = page.locator("#complaint-search-card")
+
+        self.mobile_input = page.locator("#mobile-no")
+        self.complaint_id_input = page.locator("#complaint-no")
+        self.search_btn = page.locator('button').filter(
+            has=page.locator('[data-localization="SEARCH"]'))
+        self.clear_search_btn = page.locator('button').filter(
+            has=page.locator('[data-localization="CLEAR SEARCH"]'))
+        self.complaint_card_list = page.locator(".complaints-card-main-cont")
+
+    def search_complaint(self, complaint_no):
+        self.complaint_id_input.fill(complaint_no[-6:])
+        self.search_btn.click()
+        self.complaint_card_list.wait_for(state="visible")
+        self.page.locator(f'[data-localization="{complaint_no}"]').click()
+
+class EmpComplaintSummary:
+
+    def __init__(self, page: Page):
+        
+        self.page = page
+
+        self.complaint_detail_card = page.locator(".complaint-detail-full-width")
+
+        self.comment_input = page.locator("#citizen-comment")
+        self.assign_resolve_btn = page.locator("#actionTwo")
+        self.reject_reassign_btn = page.locator("#actionOne")
+
+        # --- Assignee list ui ---
+        self.assignee_list = page.locator("#assignComplaint")
+        self.assignee_search_input = page.locator("#employee-search")
+        self.assign_confirm_btn = page.locator('button').filter(
+            has=self.page.locator('[data-localization="ASSIGN"]'))
+        
+        # --- Assigned acknowledgement ui ---
+        self.assigned_ack_card = page.locator(".success-message-inner-cont")
+
+        # --- LME UI ---
+        self.mark_resolved_btn = page.locator("#complaintresolved-submit-action")
+        self.lme_resolve_form = page.locator("#complaintResolved")
+
+    def assign_complaint(self, assignee_name):
+        self.complaint_detail_card.wait_for(state="visible")
+        self.assign_resolve_btn.click()
+        self.page.locator(".employee-list-cont").wait_for(state="visible")
+        self.page.locator(f'[data-localization="{assignee_name}"]').click()
+        self.assign_confirm_btn.click()
+        self.assigned_ack_card.wait_for(state="visible")
+        
+    def lme_resolve_complaint(self):
+        self.assign_resolve_btn.click()
+        self.lme_resolve_form.wait_for(state="visible")
+        self.mark_resolved_btn.click()

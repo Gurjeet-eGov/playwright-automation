@@ -2,6 +2,7 @@ import time
 import pandas as pd
 import csv, json
 import re
+from pages.Login import EmployeeLogin
 
 LOCALIZATION_SOURCE_PATH = 'target/resources/source.json'
 CONFIG_PATH = "config.json"
@@ -12,10 +13,10 @@ def get_env(conf_key=None):
         env_config = json.load(f)
     return env_config.get(conf_key) if conf_key else env_config
 
-def get_creds(module, user):
+def get_creds(module):
     """Returns credentials of a specific user"""
     creds = get_env("credentials").get(module)
-    return creds.get(user)
+    return creds
 
 def validate_regex(string_list):
     pattern = r'^(?![0-9\s,%.]+$).*[_.].*'
@@ -32,8 +33,7 @@ def validate_regex(string_list):
         and not EXCLUDE_NUMERIC_ONLY.match(item)
     ]
 
-def find_loc_codes(ui_strings, 
-                   isTable = False, 
+def find_loc_codes(ui_strings, isTable = False, 
                    source_json_path=LOCALIZATION_SOURCE_PATH):
     
     if isTable:
@@ -86,3 +86,33 @@ def get_table_data(page: None):
         table_headers = current_table.locator("thead tr").inner_text()
         table_data = table_data + table_headers + current_table.inner_text() if current_table.inner_text() else table_data
     return table_data
+
+def get_logged_in_context(
+                        browser_chr,
+                        login_url: str,
+                        creds: dict,
+                        language: str = "English",
+                        latitude: float = 31.6340,
+                        longitude: float = 74.8723,
+                        ):
+    # --- Launch Chromium ---
+    context = browser_chr.new_context(
+                                        permissions=["geolocation"],
+                                        geolocation={"latitude": latitude, "longitude": longitude},
+                                    )
+    page = context.new_page()
+    login_pom = EmployeeLogin(page)
+
+    page.goto(login_url)
+    page.wait_for_load_state("networkidle")
+    login_pom.select_language(language)
+    page.wait_for_load_state("networkidle")
+    login_pom.login_employee(
+        username=creds.get("username"),
+        password=creds.get("password"),
+        tenant_id=creds.get("tenantId"),
+    )
+    page.wait_for_url("**/employee/inbox")
+    page.wait_for_load_state("networkidle")
+    page.close()
+    return context
