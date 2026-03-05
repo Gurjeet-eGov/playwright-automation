@@ -148,7 +148,7 @@ class EmpComplaintSummary:
         self.assign_resolve_btn.click()
         self.page.locator(".employee-list-cont").wait_for(state="visible")
         self.page.locator(f'[data-localization="{assignee_name}"]').click()
-        self.assign_confirm_btn.click()
+        self.page.locator(".responsive-action-button").get_by_role("button").click()
         self.assigned_ack_card.wait_for(state="visible")
         
     def lme_resolve_complaint(self):

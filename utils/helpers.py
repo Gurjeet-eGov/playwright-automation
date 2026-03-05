@@ -59,6 +59,24 @@ def find_loc_codes(ui_strings, isTable = False,
 
     return validate_regex(leaks)
 
+def normalize_ui_text(raw_text: str) -> list[str]:
+    """
+    Split a big inner_text blob into individual strings, trimming
+    and dropping empties. Works for normal pages and table-ish layouts.
+    """
+    parts = re.split(r'[\n\t]+', raw_text)
+    return [p.strip() for p in parts if p.strip()]
+
+def collect_page_text(page, root_selector: str = "#root") -> list[str]:
+    """
+    Fetch all visible text under a root selector and normalize it.
+    You can override root_selector per page (e.g. '#divToPrint', 'body', etc.).
+    """
+    root = page.locator(root_selector)
+    root.wait_for(state="visible", timeout=30000)
+    raw = root.inner_text()
+    return normalize_ui_text(raw)
+
 def write_csv(data, filename):
     # Convert the list to a DataFrame
     df = pd.DataFrame(data, columns=["Locales"])

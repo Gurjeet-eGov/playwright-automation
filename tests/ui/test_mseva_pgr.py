@@ -6,8 +6,8 @@ from pages.Pgr import *
 
 BASE_URL = helpers.get_env("host")
 LOC_FILENAME = "TestMsevaPgr.json"
-loc_codes = []
-
+# Accumulate *raw* UI strings for this module/class
+_collected_ui_strings = []
 
 class TestMsevaPgr:
 
@@ -20,7 +20,8 @@ class TestMsevaPgr:
     @pytest.fixture(scope="class", autouse=True)
     def _write_loc_codes(self):
         yield
-        helpers.write_json(loc_codes, LOC_FILENAME)
+        leaks = helpers.find_loc_codes(_collected_ui_strings)
+        helpers.write_json(leaks, LOC_FILENAME)
 
     @pytest.fixture(scope="class")
     def pgr_contexts(self, browser_chr):
@@ -129,12 +130,19 @@ class TestMsevaPgr:
             subType="Dead Animals",
             isSubType=True,
         )
-
-        emp_pgr_pom.select_city(city_code=self.PGR_CSR_CREDS.get("tenantId"))
+        
+        PGR_CSR_CREDS = self.creds.get("CSR")
+        emp_pgr_pom.select_city(city_code=PGR_CSR_CREDS.get("tenantId"))
         emp_pgr_pom.select_locality(locality_name="Azad Nagar - WARD-1")
+
+        
+
         emp_pgr_pom.submit_btn.click()
 
         page.wait_for_load_state("networkidle")
+
+        
+
         self.complaint_no = emp_pgr_pom.get_complaint_no()
         assert self.complaint_no, "Complaint number was not captured."
         page.close()
@@ -152,10 +160,14 @@ class TestMsevaPgr:
         page.wait_for_load_state("networkidle")
         page.locator("#complaint-search-card").wait_for(state="visible")
 
+        
+
         emp_pom.left_menu_home_btn.click()
         emp_pom.left_menu_selection("PGR-1")
         emp_pom.left_menu_selection("OPEN-COMPLAINTS-0")
         page.wait_for_load_state("networkidle")
+
+        
 
         page.close()
 
@@ -179,7 +191,6 @@ class TestMsevaPgr:
 
         emp_pgr_pom.search_complaint(complaint_no)
         emp_pgr_summary_pom.assign_complaint("TESEMP0")
-        time.sleep(3)
 
         page.close()
 
@@ -188,21 +199,27 @@ class TestMsevaPgr:
     def test_pgr_resolve(self, pgr_contexts, gro_assign_fix):
         complaint_no = gro_assign_fix
         context = pgr_contexts.get("LME")
-        lme_page = context.new_page()
-        lme_page.goto(BASE_URL + "/employee")
-        lme_page.wait_for_load_state("networkidle")
+        page = context.new_page()
+        page.goto(BASE_URL + "/employee")
+        page.wait_for_load_state("networkidle")
+
+        
         
         # navigate to open complaints 
-        landing_page_pom = EmpMonoUI(lme_page)
+        landing_page_pom = EmpMonoUI(page)
         landing_page_pom.left_menu_selection("PGR-1")
         landing_page_pom.left_menu_selection("OPEN-COMPLAINTS-0")
 
+        
+
         # navigate to complaint summary
-        open_complaints_pom = EmpOpenComplaints(lme_page)
+        open_complaints_pom = EmpOpenComplaints(page)
         open_complaints_pom.search_open_lme_complaint(complaint_no)
 
+        
+
         # resolve complaint
-        complaint_summary_pom = EmpComplaintSummary(lme_page)
+        complaint_summary_pom = EmpComplaintSummary(page)
         complaint_summary_pom.lme_resolve_complaint()
         complaint_summary_pom.assigned_ack_card.wait_for(state="visible")
-        lme_page.close()
+        page.close()
