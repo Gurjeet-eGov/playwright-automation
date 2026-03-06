@@ -109,8 +109,22 @@ class TestMsevaPgr:
 
 
     # --- Test Cases ---
+    @pytest.mark.parametrize(
+                        ["citizen_data", "complaint_detail"],
+                        [({"name": "Test Name", 
+                          "mobile": "9999999991", 
+                          "house": "HN 123", 
+                          "landmark": "Tst Lndmrk", 
+                          "add_details": "Add Info",
+                          "tenantId": "pb.testing",
+                          "locality": "Azad Nagar - WARD-1"}, 
+                          {"type": "Animals",
+                           "subType": "Dead Animals",
+                           "isSubType": True})]
+                           )
     @pytest.mark.pgr
-    def test_pgr_createComplaint(self, pgr_contexts):
+    @pytest.mark.smoke
+    def test_pgr_createComplaint(self, pgr_contexts, citizen_data, complaint_detail):
         context = pgr_contexts.get("CSR")
         page = context.new_page()
 
@@ -118,30 +132,25 @@ class TestMsevaPgr:
         emp_pgr_pom.navigate(base_url=BASE_URL)
 
         emp_pgr_pom.fill_citizen_details(
-            name="Test Name",
-            mobile="9999999991",
-            house="HN 123 ST 123",
-            landmark="Tst Lndmrk",
-            add_details="Add Info",
+            name=citizen_data["name"],
+            mobile=citizen_data["mobile"],
+            house=citizen_data["house"],
+            landmark=citizen_data["landmark"],
+            add_details=citizen_data["add_details"],
         )
 
         emp_pgr_pom.select_complaint_type(
-            type_name="Animals",
-            subType="Dead Animals",
-            isSubType=True,
+            type_name=complaint_detail["type"],
+            subType=complaint_detail["subType"],
+            isSubType=complaint_detail["isSubType"],
         )
         
-        PGR_CSR_CREDS = self.creds.get("CSR")
-        emp_pgr_pom.select_city(city_code=PGR_CSR_CREDS.get("tenantId"))
-        emp_pgr_pom.select_locality(locality_name="Azad Nagar - WARD-1")
-
-        
+        emp_pgr_pom.select_city(citizen_data["tenantId"])
+        emp_pgr_pom.select_locality(citizen_data["locality"])
 
         emp_pgr_pom.submit_btn.click()
 
         page.wait_for_load_state("networkidle")
-
-        
 
         self.complaint_no = emp_pgr_pom.get_complaint_no()
         assert self.complaint_no, "Complaint number was not captured."
@@ -149,6 +158,9 @@ class TestMsevaPgr:
 
     @pytest.mark.pgr
     def test_pgr_groUiNav(self, pgr_contexts):
+        """
+        This test is just verify the UI navigation
+        """
         context = pgr_contexts.get("GRO")
         page = context.new_page()
         page.goto(BASE_URL + "/employee")
@@ -171,8 +183,9 @@ class TestMsevaPgr:
 
         page.close()
 
+    @pytest.mark.parametrize("assignee", ["TESEMP0"])
     @pytest.mark.pgr
-    def test_pgr_empComplaintAssign(self, pgr_contexts, csr_create_fix):
+    def test_pgr_empComplaintAssign(self, pgr_contexts, csr_create_fix, assignee):
         complaint_no = csr_create_fix
         context = pgr_contexts.get("GRO")
         page = context.new_page()
@@ -184,18 +197,16 @@ class TestMsevaPgr:
         emp_pom = EmpMonoUI(page)
         emp_pgr_pom = EmpSearchComplaints(page)
         emp_pgr_summary_pom = EmpComplaintSummary(page)
-        # --- POM Objects ---
 
         emp_pom.quick_action_option("Search Complaint")
         page.wait_for_load_state("networkidle")
 
         emp_pgr_pom.search_complaint(complaint_no)
-        emp_pgr_summary_pom.assign_complaint("TESEMP0")
+        emp_pgr_summary_pom.assign_complaint(assignee)
 
         page.close()
 
     @pytest.mark.pgr
-    @pytest.mark.smoke
     def test_pgr_resolve(self, pgr_contexts, gro_assign_fix):
         complaint_no = gro_assign_fix
         context = pgr_contexts.get("LME")
@@ -203,20 +214,14 @@ class TestMsevaPgr:
         page.goto(BASE_URL + "/employee")
         page.wait_for_load_state("networkidle")
 
-        
-        
         # navigate to open complaints 
         landing_page_pom = EmpMonoUI(page)
         landing_page_pom.left_menu_selection("PGR-1")
         landing_page_pom.left_menu_selection("OPEN-COMPLAINTS-0")
 
-        
-
         # navigate to complaint summary
         open_complaints_pom = EmpOpenComplaints(page)
         open_complaints_pom.search_open_lme_complaint(complaint_no)
-
-        
 
         # resolve complaint
         complaint_summary_pom = EmpComplaintSummary(page)
