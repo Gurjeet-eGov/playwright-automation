@@ -59,7 +59,7 @@ class TestMsevaPgr:
         page = context.new_page()
 
         emp_create_pgr_pom = EmpCreatePGR(page)
-        emp_create_pgr_pom.navigate(base_url=BASE_URL)
+        emp_create_pgr_pom.navigateCreateComplaint(base_url=BASE_URL)
 
         emp_create_pgr_pom.fill_citizen_details(
             name="Test Name",
@@ -201,16 +201,28 @@ class TestMsevaPgr:
         page.goto(BASE_URL + "/employee")
         page.wait_for_load_state("networkidle")
 
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
+
         # --- POM Objects ---
         emp_pom = EmpMonoUI(page)
         emp_pgr_pom = EmpSearchComplaints(page)
         emp_pgr_summary_pom = EmpComplaintSummary(page)
 
         emp_pom.quick_action_option("Search Complaint")
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
         page.wait_for_load_state("networkidle")
 
         emp_pgr_pom.search_complaint(complaint_no)
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
         emp_pgr_summary_pom.assign_complaint(assignee)
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
 
         page.close()
 
@@ -222,17 +234,29 @@ class TestMsevaPgr:
         page.goto(BASE_URL + "/employee")
         page.wait_for_load_state("networkidle")
 
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
+
         # navigate to open complaints 
         landing_page_pom = EmpMonoUI(page)
         landing_page_pom.left_menu_selection("PGR-1")
         landing_page_pom.left_menu_selection("OPEN-COMPLAINTS-0")
 
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
+
         # navigate to complaint summary
         open_complaints_pom = EmpOpenComplaints(page)
         open_complaints_pom.search_open_lme_complaint(complaint_no)
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
 
         # resolve complaint
         complaint_summary_pom = EmpComplaintSummary(page)
         complaint_summary_pom.lme_resolve_complaint()
         complaint_summary_pom.assigned_ack_card.wait_for(state="visible")
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
         page.close()
