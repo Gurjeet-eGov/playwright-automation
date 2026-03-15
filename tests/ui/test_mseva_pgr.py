@@ -107,7 +107,6 @@ class TestMsevaPgr:
         page.close()
         return complaint_no
 
-
     # --- Test Cases ---
     @pytest.mark.parametrize(
                         ["citizen_data", "complaint_detail"],
@@ -129,7 +128,10 @@ class TestMsevaPgr:
         page = context.new_page()
 
         emp_pgr_pom = EmpCreatePGR(page)
-        emp_pgr_pom.navigate(base_url=BASE_URL)
+        emp_pgr_pom.navigateCreateComplaint(base_url=BASE_URL)
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
 
         emp_pgr_pom.fill_citizen_details(
             name=citizen_data["name"],
@@ -152,8 +154,14 @@ class TestMsevaPgr:
 
         page.wait_for_load_state("networkidle")
 
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
+
         self.complaint_no = emp_pgr_pom.get_complaint_no()
         assert self.complaint_no, "Complaint number was not captured."
+
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
         page.close()
 
     @pytest.mark.pgr
@@ -172,14 +180,14 @@ class TestMsevaPgr:
         page.wait_for_load_state("networkidle")
         page.locator("#complaint-search-card").wait_for(state="visible")
 
-        
-
         emp_pom.left_menu_home_btn.click()
         emp_pom.left_menu_selection("PGR-1")
         emp_pom.left_menu_selection("OPEN-COMPLAINTS-0")
+        page.locator(".complaints-card-main-cont").first.wait_for(state="visible", timeout=50000)
         page.wait_for_load_state("networkidle")
 
-        
+        captured_text = helpers.collect_page_text(page, "#root")
+        _collected_ui_strings.extend(captured_text)
 
         page.close()
 

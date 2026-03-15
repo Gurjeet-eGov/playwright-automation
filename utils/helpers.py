@@ -19,19 +19,27 @@ def get_creds(module):
     return creds
 
 def validate_regex(string_list):
-    pattern = r'^(?![0-9\s,%.]+$).*[_.].*'
-    # POSITIVE: Must contain at least one of these characters
+    # 1. POSITIVE: Must contain at least one of these technical characters
     INCLUDE_PATTERN = re.compile(r'[_.]')
 
-    # NEGATIVE: Matches strings that are ONLY numbers, commas, spaces, dots, or %
-    # We use ^ and $ to ensure the ENTIRE string matches this "junk" profile
-    EXCLUDE_NUMERIC_ONLY = re.compile(r'^[0-9\s,%.]+$')
-    # return [item for item in string_list if re.search(pattern, item)]
-    return [
-        item for item in string_list 
-        if INCLUDE_PATTERN.search(item) 
-        and not EXCLUDE_NUMERIC_ONLY.match(item)
-    ]
+    # 2. NEGATIVE (User's Pattern): Matches strings that are ONLY numbers, commas, spaces, dots, or %
+    # This cleans up "1,200.50", "100%", "99.9", etc.
+    EXCLUDE_JUNK_PATTERN = re.compile(r'^[0-9\s,%.]+$')
+
+    # 3. SPACE CHECK: Localization keys almost never have spaces. 
+    # This cleans up "Enter House No. and Street Name"
+    
+    filtered_list = []
+    for item in string_list:
+        # Step A: Does it have a . or _?
+        if INCLUDE_PATTERN.search(item):
+            # Step B: Is it just a bunch of numbers/symbols?
+            if not EXCLUDE_JUNK_PATTERN.match(item):
+                # Step C: Does it have a space? (If yes, it's likely a sentence)
+                if " " not in item:
+                    filtered_list.append(item)
+                    
+    return filtered_list
 
 def find_loc_codes(ui_strings, isTable = False, 
                    source_json_path=LOCALIZATION_SOURCE_PATH):
@@ -43,6 +51,10 @@ def find_loc_codes(ui_strings, isTable = False,
     # 1. Load the Source JSON
     with open(source_json_path, 'r', encoding='utf-8') as f:
         source_data = json.load(f)
+
+    # validating against the regex first and then searching in source file later
+    ui_strings = validate_regex(ui_strings)
+
 
     # 2. Create a set of all valid localized "messages"
     # We use a set for lightning-fast lookups
@@ -57,7 +69,7 @@ def find_loc_codes(ui_strings, isTable = False,
             leaks.append(string)
         # Else: it exists in 'message', so we skip it (localized)
 
-    return validate_regex(leaks)
+    return list(set(leaks))
 
 def normalize_ui_text(raw_text: str) -> list[str]:
     """

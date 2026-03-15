@@ -30,7 +30,7 @@ class EmpCreatePGR:
         # --- Actions ---
         self.submit_btn = page.locator("#addComplaint-submit-complaint")
 
-    def navigate(self, base_url: str):
+    def navigateCreateComplaint(self, base_url: str):
         self.page.goto(f"{base_url}/employee/create-complaint")
         self.page.wait_for_load_state("networkidle")
 

@@ -33,7 +33,9 @@ class EmpMonoUI:
             try:
                 target.wait_for(state="visible", timeout=8000)
                 target.scroll_into_view_if_needed(timeout=5000)
-                target.click(timeout=8000)
+                target.click(timeout=8000,
+                             force=True #this is specifically for mac
+                             )
                 return
             except (PlaywrightTimeoutError, Error) as err:
                 last_err = err
