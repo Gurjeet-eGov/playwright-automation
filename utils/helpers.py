@@ -22,21 +22,25 @@ def validate_regex(string_list):
     # 1. POSITIVE: Must contain at least one of these technical characters
     INCLUDE_PATTERN = re.compile(r'[_.]')
 
-    # 2. NEGATIVE (User's Pattern): Matches strings that are ONLY numbers, commas, spaces, dots, or %
-    # This cleans up "1,200.50", "100%", "99.9", etc.
+    # 2. NEGATIVE: Matches strings that are ONLY numbers, commas, spaces, dots, or %
     EXCLUDE_JUNK_PATTERN = re.compile(r'^[0-9\s,%.]+$')
 
-    # 3. SPACE CHECK: Localization keys almost never have spaces. 
-    # This cleans up "Enter House No. and Street Name"
-    
     filtered_list = []
     for item in string_list:
-        # Step A: Does it have a . or _?
+        # Step A: Basic technical character check
         if INCLUDE_PATTERN.search(item):
-            # Step B: Is it just a bunch of numbers/symbols?
+            
+            # Step B: Exclude pure tax/amount/number junk
             if not EXCLUDE_JUNK_PATTERN.match(item):
-                # Step C: Does it have a space? (If yes, it's likely a sentence)
-                if " " not in item:
+                
+                # Step C: Smart Space Check
+                if " " in item:
+                    # If it has a space, it MUST have an underscore to be a key.
+                    # This keeps "DSS_TB_PT (In Lac)" but drops "Enter House No."
+                    if "_" in item:
+                        filtered_list.append(item)
+                else:
+                    # No space? It's likely a standard key (like 'pb.testing')
                     filtered_list.append(item)
                     
     return filtered_list

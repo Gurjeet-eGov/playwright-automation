@@ -122,7 +122,6 @@ class TestMsevaPgr:
                            "isSubType": True})]
                            )
     @pytest.mark.pgr
-    @pytest.mark.smoke
     def test_pgr_createComplaint(self, pgr_contexts, citizen_data, complaint_detail):
         context = pgr_contexts.get("CSR")
         page = context.new_page()
